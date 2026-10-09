@@ -1,91 +1,682 @@
-
+```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kontrol LED ESP8266</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b1120">
+
+  <title>Smart LED | IoT Control</title>
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background: #eef2f7;
-      padding: 30px 15px;
+    :root {
+      --bg: #080d18;
+      --panel: #111a2b;
+      --panel-light: #172338;
+      --border: rgba(255,255,255,.09);
+      --text: #f1f5f9;
+      --muted: #8d9bb2;
+      --green: #34d399;
+      --blue: #60a5fa;
+      --red: #fb7185;
     }
-    .panel {
-      max-width: 380px;
-      margin: auto;
-      padding: 25px;
-      background: white;
-      border-radius: 15px;
-      box-shadow: 0 3px 12px #0002;
-    }
-    input, button {
-      width: 100%;
+
+    * {
       box-sizing: border-box;
-      padding: 12px;
-      margin: 8px 0;
-      font-size: 16px;
-      border-radius: 8px;
+      margin: 0;
+      padding: 0;
     }
-    input { border: 1px solid #bbb; }
-    button { border: 0; color: white; cursor: pointer; }
-    .on { background: #16a34a; }
-    .off { background: #dc2626; }
-    #status { overflow-wrap: anywhere; }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse at 80% 0%, #162747 0%, transparent 42%),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    button, input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .container {
+      width: min(1080px, 92%);
+      margin: auto;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      background: rgba(8,13,24,.72);
+      backdrop-filter: blur(16px);
+    }
+
+    .navbar {
+      min-height: 78px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      color: var(--green);
+      background: rgba(52,211,153,.12);
+      border: 1px solid rgba(52,211,153,.22);
+      font-size: 23px;
+    }
+
+    .brand h1 {
+      font-size: 17px;
+      letter-spacing: -.4px;
+    }
+
+    .brand p {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .connection {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      color: #b8c6d9;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      background: #fbbf24;
+      border-radius: 50%;
+      box-shadow: 0 0 12px currentColor;
+    }
+
+    main {
+      padding-top: 48px;
+      padding-bottom: 40px;
+    }
+
+    .intro {
+      margin-bottom: 30px;
+    }
+
+    .eyebrow {
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .intro h2 {
+      font-size: clamp(27px, 5vw, 40px);
+      line-height: 1.2;
+      letter-spacing: -1.3px;
+      margin-bottom: 12px;
+    }
+
+    .intro p {
+      max-width: 570px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(270px, .8fr);
+      gap: 20px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      background: linear-gradient(
+        145deg,
+        rgba(23,35,56,.96),
+        rgba(14,23,39,.96)
+      );
+      border-radius: 22px;
+      padding: 26px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.12);
+    }
+
+    .card-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 25px;
+    }
+
+    .card-heading h3 {
+      font-size: 16px;
+    }
+
+    .card-heading p {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 3px;
+    }
+
+    .tag {
+      font-size: 11px;
+      color: #a8b7cd;
+      padding: 5px 9px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--border);
+    }
+
+    .lamp-area {
+      min-height: 215px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background:
+        radial-gradient(
+          circle at center,
+          rgba(52,211,153,.10),
+          transparent 65%
+        ),
+        rgba(5,11,22,.35);
+      margin-bottom: 22px;
+    }
+
+    .lamp {
+      width: 106px;
+      height: 106px;
+      margin: 0 auto 13px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      font-size: 46px;
+      background: #172338;
+      border: 1px solid #2b3b54;
+      transition: .3s ease;
+    }
+
+    .lamp.on {
+      color: #fef3c7;
+      background: rgba(52,211,153,.15);
+      border-color: rgba(52,211,153,.65);
+      box-shadow:
+        0 0 25px rgba(52,211,153,.16),
+        inset 0 0 22px rgba(52,211,153,.08);
+    }
+
+    .lamp-area h4 {
+      font-size: 18px;
+    }
+
+    .lamp-area p {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .control-label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .btn {
+      min-height: 52px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      font-size: 14px;
+      font-weight: 700;
+      transition: transform .2s, opacity .2s, background .2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn:disabled {
+      cursor: wait;
+      opacity: .5;
+      transform: none;
+    }
+
+    .btn-on {
+      color: #062b20;
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .btn-on:hover {
+      background: #6ee7b7;
+    }
+
+    .btn-off {
+      color: #e3eaf4;
+      background: rgba(255,255,255,.04);
+    }
+
+    .btn-off:hover {
+      background: rgba(255,255,255,.09);
+    }
+
+    .notice {
+      min-height: 45px;
+      margin-top: 16px;
+      padding: 12px 14px;
+      border-radius: 11px;
+      color: #b7c5d8;
+      background: rgba(5,11,22,.38);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .notice.success {
+      color: #86efac;
+      border-color: rgba(52,211,153,.25);
+    }
+
+    .notice.error {
+      color: #fda4af;
+      border-color: rgba(251,113,133,.25);
+    }
+
+    .side-card {
+      margin-bottom: 20px;
+    }
+
+    .side-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 13px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+    }
+
+    .info-row:last-child {
+      border-bottom: 0;
+    }
+
+    .info-row span:first-child {
+      color: var(--muted);
+    }
+
+    .info-value {
+      text-align: right;
+      font-weight: 600;
+    }
+
+    .green {
+      color: var(--green);
+    }
+
+    .password-label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .password-input {
+      width: 100%;
+      min-height: 47px;
+      color: var(--text);
+      background: rgba(5,11,22,.5);
+      border: 1px solid #2b3b54;
+      border-radius: 11px;
+      padding: 12px 14px;
+      outline: none;
+    }
+
+    .password-input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(52,211,153,.09);
+    }
+
+    .helper {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 22px 0;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 760px) {
+      main {
+        padding-top: 32px;
+      }
+
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        padding: 20px;
+      }
+
+      .navbar {
+        min-height: 70px;
+      }
+
+      .intro h2 {
+        letter-spacing: -.7px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .brand h1 {
+        font-size: 15px;
+      }
+
+      .connection {
+        padding: 7px 9px;
+        font-size: 10px;
+      }
+
+      .brand-icon {
+        width: 38px;
+        height: 38px;
+      }
+
+      .card-heading {
+        align-items: flex-start;
+      }
+    }
   </style>
 </head>
+
 <body>
-  <div class="panel">
-    <h2>Kontrol LED ESP8266</h2>
-    <p>Masukkan kata sandi kontrol kamu.</p>
+  <header>
+    <div class="container navbar">
+      <div class="brand">
+        <div class="brand-icon">ϟ</div>
+        <div>
+          <h1>Smart LED</h1>
+          <p>IoT Control System</p>
+        </div>
+      </div>
 
-    <input id="password" type="password"
-           placeholder="Kata sandi CONTROL_PASSWORD">
+      <div class="connection">
+        <span class="dot" id="connectionDot"></span>
+        <span id="connectionText">Siap digunakan</span>
+      </div>
+    </div>
+  </header>
 
-    <button class="on" onclick="setLED('ON')">LED ON</button>
-    <button class="off" onclick="setLED('OFF')">LED OFF</button>
+  <main class="container">
+    <section class="intro">
+      <div class="eyebrow">SMART HOME / DEVICE 01</div>
+      <h2>Kontrol perangkat,<br>di mana saja.</h2>
+      <p>
+        Kendalikan lampu LED melalui internet dengan dashboard
+        yang sederhana, aman, dan mudah digunakan.
+      </p>
+    </section>
 
-    <p id="status">Siap mengirim perintah.</p>
-  </div>
+    <section class="dashboard">
+      <div class="card">
+        <div class="card-heading">
+          <div>
+            <h3>Kontrol Pencahayaan</h3>
+            <p>NodeMCU ESP8266 · Output D1</p>
+          </div>
+          <span class="tag">DEVICE 01</span>
+        </div>
+
+        <div class="lamp-area">
+          <div>
+            <div class="lamp" id="lampIcon">♧</div>
+            <h4 id="lampStatus">Status belum diketahui</h4>
+            <p id="lampDescription">
+              Kirim perintah untuk mengendalikan LED
+            </p>
+          </div>
+        </div>
+
+        <p class="control-label">Pilih perintah perangkat</p>
+
+        <div class="controls">
+          <button class="btn btn-on" id="onButton"
+            onclick="controlLED('ON')">
+            ☀ &nbsp; Nyalakan LED
+          </button>
+
+          <button class="btn btn-off" id="offButton"
+            onclick="controlLED('OFF')">
+            ◯ &nbsp; Matikan LED
+          </button>
+        </div>
+
+        <div class="notice" id="notice" role="status" aria-live="polite">
+          Masukkan password kontrol, lalu pilih ON atau OFF.
+        </div>
+      </div>
+
+      <div>
+        <div class="card side-card">
+          <div class="card-heading">
+            <div>
+              <h3>Informasi Sistem</h3>
+              <p>Ringkasan perangkat</p>
+            </div>
+          </div>
+
+          <div class="info-row">
+            <span>Perangkat</span>
+            <span class="info-value">ESP8266</span>
+          </div>
+
+          <div class="info-row">
+            <span>Jalur output</span>
+            <span class="info-value">GPIO D1</span>
+          </div>
+
+          <div class="info-row">
+            <span>Server kontrol</span>
+            <span class="info-value green">Cloudflare</span>
+          </div>
+
+          <div class="info-row">
+            <span>Perintah terakhir</span>
+            <span class="info-value" id="lastCommand">Belum ada</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-heading">
+            <div>
+              <h3>Keamanan Akses</h3>
+              <p>Password untuk mengirim perintah</p>
+            </div>
+            <span>♙</span>
+          </div>
+
+          <label class="password-label" for="controlPassword">
+            Password kontrol
+          </label>
+
+          <input
+            class="password-input"
+            id="controlPassword"
+            type="password"
+            placeholder="Masukkan password"
+            autocomplete="current-password"
+          >
+
+          <p class="helper">
+            Password dikirim ke server melalui HTTPS.
+            Jangan gunakan password akun pribadi.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-content">
+      <span>© 2026 Smart LED Control System</span>
+      <span>Powered by ESP8266 &amp; Cloudflare</span>
+    </div>
+  </footer>
 
   <script>
     const WORKER_URL =
       "https://small-sky-586ckontrol-led-esp8266.rohmanxjr358.workers.dev";
 
-    async function setLED(command) {
-      const password = document.getElementById("password").value;
-      const status = document.getElementById("status");
+    const onButton = document.getElementById("onButton");
+    const offButton = document.getElementById("offButton");
+    const notice = document.getElementById("notice");
+    const passwordInput = document.getElementById("controlPassword");
+    const lampIcon = document.getElementById("lampIcon");
+    const lampStatus = document.getElementById("lampStatus");
+    const lampDescription = document.getElementById("lampDescription");
+    const lastCommand = document.getElementById("lastCommand");
+    const connectionText = document.getElementById("connectionText");
+    const connectionDot = document.getElementById("connectionDot");
 
-      if (!password) {
-        status.textContent = "Masukkan kata sandi terlebih dahulu.";
+    function showNotice(message, type = "") {
+      notice.textContent = message;
+      notice.className = "notice " + type;
+    }
+
+    function showLamp(command) {
+      if (command === "ON") {
+        lampIcon.classList.add("on");
+        lampIcon.textContent = "☀";
+        lampStatus.textContent = "LED MENYALA";
+        lampDescription.textContent =
+          "Perintah ON telah diterima server";
+      } else {
+        lampIcon.classList.remove("on");
+        lampIcon.textContent = "♧";
+        lampStatus.textContent = "LED MATI";
+        lampDescription.textContent =
+          "Perintah OFF telah diterima server";
+      }
+
+      lastCommand.textContent = command;
+    }
+
+    async function controlLED(command) {
+      const password = passwordInput.value;
+
+      if (!password.trim()) {
+        passwordInput.focus();
+        showNotice(
+          "Masukkan password kontrol terlebih dahulu.",
+          "error"
+        );
         return;
       }
 
-      status.textContent = "Mengirim perintah...";
+      onButton.disabled = true;
+      offButton.disabled = true;
+
+      connectionText.textContent = "Mengirim perintah...";
+      connectionDot.style.background = "#fbbf24";
+
+      showNotice("Menghubungi server dan mengirim perintah...");
 
       try {
         const response = await fetch(WORKER_URL + "/set", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ password, command })
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            password: password,
+            command: command
+          })
         });
 
-        const result = await response.json();
+        const result = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-          status.textContent = result.error || "Perintah gagal.";
-          return;
+          if (response.status === 401) {
+            throw new Error("Password kontrol salah.");
+          }
+
+          throw new Error(
+            result.message || result.error ||
+            "Server menolak perintah (HTTP " +
+            response.status + ")."
+          );
         }
 
-        status.textContent =
-          "Perintah " + result.command +
-          " tersimpan. Pastikan NodeMCU sudah terhubung.";
+        showLamp(command);
+
+        connectionText.textContent = "Server merespons";
+        connectionDot.style.background = "#34d399";
+
+        showNotice(
+          "Perintah " + command +
+          " berhasil dikirim. LED dapat memerlukan waktu " +
+          "hingga sekitar 5 detik untuk merespons.",
+          "success"
+        );
+
       } catch (error) {
-        status.textContent =
-          "Gagal menghubungi server. Periksa koneksi internet.";
+        connectionText.textContent = "Periksa koneksi";
+        connectionDot.style.background = "#fb7185";
+
+        showNotice(
+          error.message ||
+          "Tidak dapat terhubung. Periksa internet kamu.",
+          "error"
+        );
+
+      } finally {
+        onButton.disabled = false;
+        offButton.disabled = false;
       }
     }
   </script>
 </body>
 </html>
+```
