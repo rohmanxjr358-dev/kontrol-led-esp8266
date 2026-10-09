@@ -1,0 +1,61 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kontrol LED ESP8266</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #101827;
+      color: white;
+      text-align: center;
+      padding: 30px 15px;
+    }
+    .kartu {
+      max-width: 380px;
+      margin: 30px auto;
+      padding: 25px;
+      background: #1e293b;
+      border-radius: 20px;
+    }
+    button {
+      width: 100%;
+      padding: 16px;
+      margin: 10px 0;
+      font-size: 18px;
+      font-weight: bold;
+      border: 0;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    .nyala { background: #22c55e; color: #052e16; }
+    .mati { background: #ef4444; color: white; }
+    #status { color: #cbd5e1; }
+  </style>
+</head>
+<body>
+  <h1>Kontrol LED</h1>
+  <p>NodeMCU ESP8266</p>
+
+  <div class="kartu">
+    <h2>LED Bawaan</h2>
+    <p id="status">Belum terhubung ke perangkat</p>
+    <button class="nyala" onclick="kontrolLED('on')">
+      LED ON
+    </button>
+    <button class="mati" onclick="kontrolLED('off')">
+      LED OFF
+    </button>
+  </div>
+
+  <script>
+    function kontrolLED(perintah) {
+      document.getElementById("status").textContent =
+        "Tombol " + perintah.toUpperCase() +
+        " ditekan. Penghubung perangkat belum dipasang.";
+    }
+  </script>
+</body>
+</html>
