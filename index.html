@@ -8,53 +8,83 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #101827;
-      color: white;
       text-align: center;
+      background: #eef2f7;
       padding: 30px 15px;
     }
-    .kartu {
+    .panel {
       max-width: 380px;
-      margin: 30px auto;
+      margin: auto;
       padding: 25px;
-      background: #1e293b;
-      border-radius: 20px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 3px 12px #0002;
     }
-    button {
+    input, button {
       width: 100%;
-      padding: 16px;
-      margin: 10px 0;
-      font-size: 18px;
-      font-weight: bold;
-      border: 0;
-      border-radius: 12px;
-      cursor: pointer;
+      box-sizing: border-box;
+      padding: 12px;
+      margin: 8px 0;
+      font-size: 16px;
+      border-radius: 8px;
     }
-    .nyala { background: #22c55e; color: #052e16; }
-    .mati { background: #ef4444; color: white; }
-    #status { color: #cbd5e1; }
+    input { border: 1px solid #bbb; }
+    button { border: 0; color: white; cursor: pointer; }
+    .on { background: #16a34a; }
+    .off { background: #dc2626; }
+    #status { overflow-wrap: anywhere; }
   </style>
 </head>
 <body>
-  <h1>Kontrol LED</h1>
-  <p>NodeMCU ESP8266</p>
+  <div class="panel">
+    <h2>Kontrol LED ESP8266</h2>
+    <p>Masukkan kata sandi kontrol kamu.</p>
 
-  <div class="kartu">
-    <h2>LED Bawaan</h2>
-    <p id="status">Belum terhubung ke perangkat</p>
-    <button class="nyala" onclick="kontrolLED('on')">
-      LED ON
-    </button>
-    <button class="mati" onclick="kontrolLED('off')">
-      LED OFF
-    </button>
+    <input id="password" type="password"
+           placeholder="Kata sandi CONTROL_PASSWORD">
+
+    <button class="on" onclick="setLED('ON')">LED ON</button>
+    <button class="off" onclick="setLED('OFF')">LED OFF</button>
+
+    <p id="status">Siap mengirim perintah.</p>
   </div>
 
   <script>
-    function kontrolLED(perintah) {
-      document.getElementById("status").textContent =
-        "Tombol " + perintah.toUpperCase() +
-        " ditekan. Penghubung perangkat belum dipasang.";
+    const WORKER_URL =
+      "https://small-sky-586ckontrol-led-esp8266.rohmanxjr358.workers.dev";
+
+    async function setLED(command) {
+      const password = document.getElementById("password").value;
+      const status = document.getElementById("status");
+
+      if (!password) {
+        status.textContent = "Masukkan kata sandi terlebih dahulu.";
+        return;
+      }
+
+      status.textContent = "Mengirim perintah...";
+
+      try {
+        const response = await fetch(WORKER_URL + "/set", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password, command })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          status.textContent = result.error || "Perintah gagal.";
+          return;
+        }
+
+        status.textContent =
+          "Perintah " + result.command +
+          " tersimpan. Pastikan NodeMCU sudah terhubung.";
+      } catch (error) {
+        status.textContent =
+          "Gagal menghubungi server. Periksa koneksi internet.";
+      }
     }
   </script>
 </body>
